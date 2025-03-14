@@ -19,6 +19,7 @@ const TestFirebase = () => {
   const [status, setStatus] = useState("");
 
   useEffect(() => {
+    if (!user) return;
     const unsubscribe = onSnapshot(
       collection(db, "testCollection"),
       (snapshot) => {
