@@ -30,7 +30,7 @@ const useAuth = () => {
       }
     });
     return () => unsubscribeAuth();
-  }, [pathname]);
+  }, [user, pathname]);
 
   const logout = async () => {
     if (unsubscribeFirestore) unsubscribeFirestore();
