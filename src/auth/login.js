@@ -59,7 +59,7 @@ const Login = () => {
           />
           {error && <p className="text-red-500 text-sm">{error}</p>}
           <p>
-            Don't have account? Register <a onClick={navigateRegister}>here</a>.
+            Dont have account? Register <a onClick={navigateRegister}>here</a>.
           </p>
           <div className="flex justify-end">
             <button
