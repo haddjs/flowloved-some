@@ -1,9 +1,11 @@
 import TestFirebase from "@/components/TestFirebase";
 
-export default function Home() {
+const Dashboard = () => {
   return (
     <div>
       <TestFirebase />
     </div>
   );
-}
+};
+
+export default Dashboard;

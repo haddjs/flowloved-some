@@ -1,19 +1,38 @@
 "use client";
 
-import { db } from "../../lib/firebase";
+import { db } from "../lib/firebase";
 import {
   doc,
   collection,
   addDoc,
   getDocs,
   deleteDoc,
+  onSnapshot,
 } from "firebase/firestore";
 import { useEffect, useState } from "react";
+import useAuth from "@/hooks/useAuth";
 
 const TestFirebase = () => {
+  const { user, logout } = useAuth();
   const [data, setData] = useState([]);
   const [name, setName] = useState("");
   const [status, setStatus] = useState("");
+
+  useEffect(() => {
+    const unsubscribe = onSnapshot(
+      collection(db, "testCollection"),
+      (snapshot) => {
+        const fetchedData = snapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
+        setData(fetchedData);
+      }
+    );
+    return () => unsubscribe();
+  }, []);
+
+  if (!user) return null;
 
   const addTestData = async () => {
     if (!name || !status) {
@@ -48,20 +67,12 @@ const TestFirebase = () => {
     }
   };
 
-  useEffect(() => {
-    const fetchData = async () => {
-      const querySnapshot = await getDocs(collection(db, "testCollection"));
-      const fetchedData = querySnapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      }));
-      setData(fetchedData);
-    };
-    fetchData();
-  }, []);
-
   return (
     <div>
+      <h1>Welcome to Dashboard, {user.email}</h1>
+      <button onClick={logout} className="bg-white">
+        Logout
+      </button>
       <h1>Firebase Test 🔥</h1>
       <input
         type="text"
