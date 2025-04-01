@@ -1,11 +1,13 @@
-import TestFirebase from "@/components/TestFirebase";
+import Navbar from "@/components/Navbar";
+import Dashboard from "@/components/Dashboard";
 
-const Dashboard = () => {
+const DashboardPage = () => {
   return (
     <div>
-      <TestFirebase />
+      <Navbar />
+      <Dashboard />
     </div>
   );
 };
 
-export default Dashboard;
+export default DashboardPage;

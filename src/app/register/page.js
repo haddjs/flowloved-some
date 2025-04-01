@@ -1,9 +1,9 @@
-import Register from "@/auth/register";
+import Signup from "@/components/Signup";
 
 const RegisterPage = () => {
   return (
     <div>
-      <Register />
+      <Signup />
     </div>
   );
 };

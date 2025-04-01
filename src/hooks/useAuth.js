@@ -3,42 +3,53 @@ import { useEffect, useState } from "react";
 import { db, auth } from "../lib/firebase";
 import { onAuthStateChanged, signOut } from "firebase/auth";
 import { usePathname, useRouter } from "next/navigation";
-import { onSnapshot, collection } from "firebase/firestore";
+import { onSnapshot, collection, doc, getDoc } from "firebase/firestore";
 
 const useAuth = () => {
   const [user, setUser] = useState(null);
+  const [username, setUsername] = useState("");
   const [unsubscribeFirestore, setUnsubscribeFirestore] = useState(null);
   const router = useRouter();
   const pathname = usePathname();
 
   useEffect(() => {
-    const unsubscribeAuth = onAuthStateChanged(auth, (user) => {
+    const unsubscribeAuth = onAuthStateChanged(auth, async (user) => {
       if (!user) {
+        setUser(null);
+        setUsername("");
         if (pathname !== "/login") {
           router.push("/login");
         }
-      } else {
-        setUser(user);
+        return;
+      }
+      setUser(user);
 
-        const unsubscribe = onSnapshot(
-          collection(db, "testCollection"),
-          (snapshot) => {
-            console.log("Firebase listener active");
-          }
-        );
-        setUnsubscribeFirestore(() => unsubscribe);
+      try {
+        const userDocRef = doc(db, "users", user.uid);
+        const userDocSnap = await getDoc(userDocRef);
+
+        if (userDocSnap.exists()) {
+          setUsername(userDocSnap.data().username);
+        } else {
+          console.log("User not found");
+        }
+      } catch (error) {
+        console.error("Error fetching data", error);
       }
     });
+
     return () => unsubscribeAuth();
-  }, [user, pathname]);
+  }, [pathname, router]);
 
   const logout = async () => {
-    if (unsubscribeFirestore) unsubscribeFirestore();
-    await signOut(auth);
-    router.push("/login");
+    try {
+      await signOut(auth);
+      router.push("/login");
+    } catch (error) {
+      console.error("Logout failed", error);
+    }
   };
 
-  return { user, logout };
+  return { user, username, logout };
 };
-
 export default useAuth;

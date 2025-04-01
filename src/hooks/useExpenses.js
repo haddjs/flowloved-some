@@ -2,8 +2,8 @@ import { useState, useEffect } from "react";
 import { db } from "@/lib/firebase";
 import { collection, query, where, getDocs, addDoc } from "firebase/firestore";
 
-const useIncome = (userId) => {
-  const [income, setIncome] = useState([]);
+const useExpenses = (userId) => {
+  const [expenses, setExpenses] = useState([]);
   const [loading, setLoading] = useState(true);
   const options = {
     weekday: "long",
@@ -15,63 +15,65 @@ const useIncome = (userId) => {
   useEffect(() => {
     if (!userId) return;
 
-    const fetchIncome = async () => {
+    console.log(userId);
+
+    const fetchExpenses = async () => {
       setLoading(true);
       try {
         const q = query(
-          collection(db, "income"),
+          collection(db, "expenses"),
           where("userId", "==", userId)
         );
         const querySnapshot = await getDocs(q);
-        const incomeList = querySnapshot.docs.map((doc) => ({
+        const expensesList = querySnapshot.docs.map((doc) => ({
           id: doc.id,
           ...doc.data(),
         }));
 
-        console.log("Fetched Income:", incomeList);
+        console.log("Fetched Expenses:", expensesList);
 
-        setIncome(incomeList);
+        setExpenses(expensesList);
       } catch (error) {
-        console.error("Error fetching income!", error);
+        console.error("Error fetching expenses!", error);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchIncome();
+    fetchExpenses();
   }, [userId]);
 
-  const addIncome = async (amount, source, username) => {
+  const addExpenses = async (amount, source, username) => {
     if (!userId) return;
 
     try {
-      const docRef = await addDoc(collection(db, "income"), {
+      const docRef = await addDoc(collection(db, "expenses"), {
         userId,
         username,
         amount,
         source,
         date: new Date().toLocaleDateString("id-ID", options),
-        type: "income",
+        type: "expense",
       });
 
-      const newIncome = {
+      const newExpenses = {
         id: docRef.id,
         userId,
         username,
         amount,
         source,
         date: new Date().toLocaleDateString("id-ID", options),
-        type: "income",
+        type: "expense",
       };
 
-      setIncome((prevIncome) => [...prevIncome, newIncome]);
+      setExpenses((prevExpenses) => [...prevExpenses, newExpenses]);
     } catch (error) {
-      console.error(("Error adding income!", error));
+      console.error(("Error adding expenses!", error));
       throw error;
     }
   };
 
-  return { income, loading, addIncome };
+  return { expenses, loading, addExpenses };
 };
 
-export default useIncome;
+export default useExpenses;

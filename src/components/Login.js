@@ -1,11 +1,11 @@
 "use client";
+
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { auth } from "../lib/firebase";
-import { signInWithEmailAndPassword } from "firebase/auth";
+import { login } from "@/lib/auth";
 
 const Login = () => {
-  const [email, setEmail] = useState("");
+  const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const router = useRouter();
@@ -13,19 +13,10 @@ const Login = () => {
   const handleLogin = async (e) => {
     e.preventDefault();
     setError("");
-    try {
-      await signInWithEmailAndPassword(auth, email, password);
-      router.push("/dashboard");
-    } catch (error) {
-      setError(error.message);
-    }
-  };
 
-  const navigateRegister = async (e) => {
-    e.preventDefault();
-    setError("");
     try {
-      router.push("/register");
+      await login(identifier, password);
+      router.push("/dashboard");
     } catch (error) {
       setError(error.message);
     }
@@ -44,11 +35,12 @@ const Login = () => {
         <form onSubmit={handleLogin} className="p-4 mx-10 flex flex-col gap-3">
           <h2 className="text-2xl text-gray-500 font-bold mb-4">Login</h2>
           <input
-            type="email"
-            placeholder="Email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            type="text"
+            placeholder="Email or Username"
+            value={identifier}
+            onChange={(e) => setIdentifier(e.target.value)}
             className="w-full p-2 mb-2 border border-gray-400 rounded"
+            required
           />
           <input
             type="password"
@@ -56,10 +48,18 @@ const Login = () => {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             className="w-full p-2 mb-2 border border-gray-400 rounded"
+            required
           />
           {error && <p className="text-red-500 text-sm">{error}</p>}
           <p>
-            Dont have account? Register <a onClick={navigateRegister}>here</a>.
+            Dont have account? Register{" "}
+            <span
+              onClick={() => router.push("/register")}
+              className="text-blue-500 cursor-pointer"
+            >
+              here
+            </span>
+            .
           </p>
           <div className="flex justify-end">
             <button
