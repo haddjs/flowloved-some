@@ -31,8 +31,6 @@ const useIncome = (userId) => {
           ...doc.data(),
         }));
 
-        console.log("Fetched Income:", incomeList);
-
         setIncome(incomeList);
       } catch (error) {
         console.error("Error fetching income!", error);
@@ -84,8 +82,6 @@ const useIncome = (userId) => {
       setIncome((prevIncome) =>
         prevIncome.filter((income) => income.id !== incomeId)
       );
-
-      console.log("Income deleted!");
     } catch (error) {
       console.error("Error deleting income!", error);
       throw error;

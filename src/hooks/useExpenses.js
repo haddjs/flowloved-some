@@ -31,8 +31,6 @@ const useExpenses = (userId) => {
           ...doc.data(),
         }));
 
-        console.log("Fetched Expenses:", expensesList);
-
         setExpenses(expensesList);
       } catch (error) {
         console.error("Error fetching expenses!", error);
@@ -84,8 +82,6 @@ const useExpenses = (userId) => {
       setExpenses((prevExpenses) =>
         prevExpenses.filter((expense) => expense.id !== expenseId)
       );
-
-      console.log("Expense deleted!");
     } catch (error) {
       console.error("Error deleting expenses!", error);
       throw error;

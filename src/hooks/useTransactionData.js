@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { db } from "@/lib/firebase";
 import {
   collection,
@@ -17,6 +17,7 @@ const useTransactionData = (userId, timeframe) => {
   const [totalExpenses, setTotalExpenses] = useState(0);
   const [transactions, setTransactions] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [refreshData, setRefreshData] = useState(false);
 
   useEffect(() => {
     if (!userId) return;
@@ -31,7 +32,6 @@ const useTransactionData = (userId, timeframe) => {
         const txDate = tx.date instanceof Date ? tx.date : new Date(tx.date);
         txDate.setHours(0, 0, 0, 0); // Normalize transaction date
 
-        console.log("Transaction Date:", tx.date, typeof tx.date);
         if (timeframe === "daily") {
           return txDate.getTime() === now.getTime();
         }
@@ -60,8 +60,6 @@ const useTransactionData = (userId, timeframe) => {
     };
 
     const fetchTransactions = async () => {
-      console.log("Filtered Transactions:", filterTransactions);
-
       const incomeQuery = query(
         collection(db, "income"),
         where("userId", "==", userId)
@@ -132,9 +130,6 @@ const useTransactionData = (userId, timeframe) => {
           .filter((tx) => tx.type === "expenses")
           .reduce((sum, tx) => sum + tx.amount, 0);
 
-        console.log("Income Filtered", totalIncomeFiltered);
-        console.log("Expense Filtered:", totalExpensesFiltered);
-
         const newBalance = allTimeIncome - allTimeExpenses;
         const totalRevenue = incomeData.reduce((sum, tx) => sum + tx.amount, 0);
 
@@ -151,7 +146,11 @@ const useTransactionData = (userId, timeframe) => {
     };
 
     fetchTransactions();
-  }, [userId, timeframe]);
+  }, [userId, timeframe, refreshData]);
+
+  const handleRefresh = () => {
+    setRefreshData((prev) => !prev); // Triggers useEffect to re-fetch data
+  };
 
   useEffect(() => {
     if (!userId || (currentBalance === 0 && revenue === 0)) return;
@@ -178,6 +177,7 @@ const useTransactionData = (userId, timeframe) => {
     totalExpenses,
     transactions,
     loading,
+    handleRefresh,
   };
 };
 
