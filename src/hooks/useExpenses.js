@@ -1,21 +1,22 @@
 import { useState, useEffect } from "react";
 import { db } from "@/lib/firebase";
-import { collection, query, where, getDocs, addDoc } from "firebase/firestore";
+import {
+  collection,
+  query,
+  where,
+  getDocs,
+  addDoc,
+  deleteDoc,
+  doc,
+  Timestamp,
+} from "firebase/firestore";
 
 const useExpenses = (userId) => {
   const [expenses, setExpenses] = useState([]);
   const [loading, setLoading] = useState(true);
-  const options = {
-    weekday: "long",
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  };
 
   useEffect(() => {
     if (!userId) return;
-
-    console.log(userId);
 
     const fetchExpenses = async () => {
       setLoading(true);
@@ -43,7 +44,7 @@ const useExpenses = (userId) => {
     fetchExpenses();
   }, [userId]);
 
-  const addExpenses = async (amount, source, username) => {
+  const addExpenses = async (amount, source, username, date) => {
     if (!userId) return;
 
     try {
@@ -52,7 +53,7 @@ const useExpenses = (userId) => {
         username,
         amount,
         source,
-        date: new Date().toLocaleDateString("id-ID", options),
+        date: Timestamp.fromDate(new Date(date)),
         type: "expense",
       });
 
@@ -62,18 +63,36 @@ const useExpenses = (userId) => {
         username,
         amount,
         source,
-        date: new Date().toLocaleDateString("id-ID", options),
+        date: Timestamp.fromDate(new Date(date)),
         type: "expense",
       };
 
       setExpenses((prevExpenses) => [...prevExpenses, newExpenses]);
     } catch (error) {
-      console.error(("Error adding expenses!", error));
+      console.error("Error adding expenses!", error);
       throw error;
     }
   };
 
-  return { expenses, loading, addExpenses };
+  const deleteExpenses = async (expenseId) => {
+    if (!userId) return;
+
+    try {
+      const expenseRef = doc(db, "expenses", expenseId);
+      await deleteDoc(expenseRef);
+
+      setExpenses((prevExpenses) =>
+        prevExpenses.filter((expense) => expense.id !== expenseId)
+      );
+
+      console.log("Expense deleted!");
+    } catch (error) {
+      console.error("Error deleting expenses!", error);
+      throw error;
+    }
+  };
+
+  return { expenses, loading, addExpenses, deleteExpenses };
 };
 
 export default useExpenses;

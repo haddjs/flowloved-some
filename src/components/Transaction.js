@@ -1,48 +1,61 @@
 "use client";
 
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+  Dialog,
+  DialogHeader,
+  DialogFooter,
+  DialogTitle,
+  DialogContent,
+  DialogTrigger,
+  DialogClose,
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
 import { useState, useEffect } from "react";
 import useAuth from "@/hooks/useAuth";
+import useTransactionData from "@/hooks/useTransactionData";
 import useExpenses from "@/hooks/useExpenses";
 import useIncome from "@/hooks/useIncome";
-import useTransactionData from "@/hooks/useTransactionData";
+
+import { Snackbar } from "@mui/material";
+import { Skeleton } from "@mui/material";
 
 const Transaction = () => {
   const { user } = useAuth();
   const userId = user?.uid;
-  const { totalIncome, totalExpenses, currentBalance } =
-    useTransactionData(userId);
+  const [timeframe, setTimeFrame] = useState("daily");
   const {
-    expenses,
-    loading: loadingExpenses,
-    addExpenses,
-  } = useExpenses(user?.uid);
-  const { income, loading: loadingIncome, addIncome } = useIncome(user?.uid);
-  const options = {
-    weekday: "long",
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  };
+    currentBalance,
+    revenue,
+    totalIncome,
+    totalExpenses,
+    transactions,
+    loading,
+  } = useTransactionData(userId, timeframe);
+  const { loading: loadingExpenses, addExpenses } = useExpenses(userId);
+  const { loading: loadingIncome, addIncome } = useIncome(userId);
   const [formData, setFormData] = useState({
     username: "",
     type: "income",
     source: "",
     amount: "",
-    date: new Date().toDateString(),
+    date: new Date().toISOString().split("T")[0],
   });
-  const [timeFrame, setTimeFrame] = useState("daily");
+
+  const [openDialog, setOpenDialog] = useState(false);
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
 
   if (loadingExpenses || loadingIncome) {
-    return <p>Loading...</p>;
+    <Skeleton variant="text" sx={{ fontSize: "1rem" }} />;
   }
+
+  const formatDate = (dateStr) => {
+    const date = new Date(dateStr);
+    return new Intl.DateTimeFormat("id-ID", {
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+    }).format(date);
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -52,35 +65,28 @@ const Transaction = () => {
       return;
     }
 
-    const transactionsData = {
-      username: formData.username,
-      type: formData.type,
-      source: formData.source,
-      amount: Number(formData.amount),
-      date: formData.date,
-    };
-
     try {
       if (formData.type === "income") {
         await addIncome(
-          transactionsData.amount,
-          transactionsData.source,
-          transactionsData.username
+          Number(formData.amount),
+          formData.source,
+          formData.username,
+          formData.date
         );
       } else {
         await addExpenses(
-          transactionsData.amount,
-          transactionsData.source,
-          transactionsData.username
+          Number(formData.amount),
+          formData.source,
+          formData.username,
+          formData.date
         );
       }
-
       setFormData({
         username: "",
         type: "income",
         source: "",
         amount: "",
-        date: new Date().toDateString(),
+        date: formData.date,
       });
     } catch (error) {
       console.error("Failed to add transactions", error);
@@ -138,13 +144,18 @@ const Transaction = () => {
             <div className="flex flex-col my-3 mx-3">
               <label className="py-3 text-lg">Amount</label>
               <input
-                type="number"
+                type="text"
                 placeholder="Rp 100.000"
                 className="border border-gray-500 rounded p-3"
-                value={formData.amount}
-                onChange={(e) =>
-                  setFormData({ ...formData, amount: e.target.value })
+                value={
+                  formData.amount
+                    ? `Rp ${Number(formData.amount).toLocaleString("id-ID")}`
+                    : ""
                 }
+                onChange={(e) => {
+                  const rawValue = e.target.value.replace(/[^\d]/g, "");
+                  setFormData({ ...formData, amount: rawValue });
+                }}
                 required
               />
             </div>
@@ -161,32 +172,108 @@ const Transaction = () => {
               />
             </div>
           </div>
-          <button
-            type="submit"
-            className="bg-green-500 rounded text-white w-40 p-3 my-3 mx-3 flex-1"
-          >
-            Add
-          </button>
+          <Dialog open={openDialog} onOpenChange={setOpenDialog}>
+            <DialogTrigger asChild>
+              <button
+                onClick={() => setOpenDialog(true)}
+                className="bg-green-500 rounded text-white hover:bg-green-600 transition ease-in-out w-40 p-3 my-3 mx-3 flex-1 cursor-pointer"
+              >
+                Add
+              </button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[425px]">
+              <DialogHeader>
+                <DialogTitle>Confirm Transaction</DialogTitle>
+              </DialogHeader>
+              <div className="grid gap-4 py-4">
+                <div className="grid grid-cols-2 items-center gap-4">
+                  <Label htmlFor="username" className="text-right font-bold">
+                    Name
+                  </Label>
+                  <p>{formData.username}</p>
+                </div>
+                <div className="grid grid-cols-2 items-center gap-4">
+                  <Label htmlFor="type" className="text-right font-bold">
+                    Type
+                  </Label>
+                  <p>
+                    {formData.type.charAt(0).toUpperCase() +
+                      formData.type.slice(1)}
+                  </p>
+                </div>
+                <div className="grid grid-cols-2 items-center gap-4">
+                  <Label htmlFor="source" className="text-right font-bold">
+                    Source
+                  </Label>
+                  <p>{formData.source}</p>
+                </div>
+                <div className="grid grid-cols-2 items-center gap-4">
+                  <Label htmlFor="amount" className="text-right font-bold">
+                    Amount
+                  </Label>
+                  <p>Rp. {Number(formData.amount).toLocaleString()}</p>
+                </div>
+                <div className="grid grid-cols-2 items-center gap-4">
+                  <Label htmlFor="date" className="text-right font-bold">
+                    Date
+                  </Label>
+                  <p>{formatDate(formData.date)}</p>
+                </div>
+              </div>
+              <DialogFooter>
+                <DialogClose asChild>
+                  <button
+                    type="button"
+                    className="bg-green-500 rounded text-white hover:bg-green-600 transition ease-in-out w-40 p-3 my-3 mx-3 flex-1 cursor-pointer"
+                    onClick={(e) => {
+                      setTimeout(() => handleSubmit(e), 0);
+                    }}
+                  >
+                    Confirm
+                  </button>
+                </DialogClose>
+                <DialogClose asChild>
+                  <button
+                    type="button"
+                    className="outline-2 rounded text-gray-500 hover:bg-gray-200 hover:outline-1 transition ease-in-out w-40 p-3 my-3 mx-3 flex-1 cursor-pointer"
+                  >
+                    Cancel
+                  </button>
+                </DialogClose>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+
+          <Snackbar
+            open={snackbarOpen}
+            autoHideDuration={5000}
+            onClose={() => setSnackbarOpen(false)}
+            message="Success!"
+          />
         </form>
 
         <div className="p-3">
           <div className="bg-blue-400/30 backdrop-blur-lg shadow-xl border border-white/10 rounded-2xl p-6">
             <h2 className="text-xl font-semibold">Current Balance</h2>
-            <span className="text-2xl font-bold">
-              Rp {currentBalance.toLocaleString()}
-            </span>
+            {loading ? (
+              <Skeleton variant="text" sx={{ fontSize: "1rem" }} />
+            ) : (
+              <p className="text-2xl font-bold">
+                Rp {currentBalance.toLocaleString()}
+              </p>
+            )}
           </div>
           <div>
             <div className="flex gap-3 justify-end mt-5">
               {["daily", "weekly", "monthly"].map((option) => (
                 <button
                   key={option}
-                  onClick={() => setTimeFrame(option)}
-                  className={`px-4 py-2 rounded-2xl ${
-                    timeFrame === option
+                  className={`px-4 py-2 rounded-lg border border-gray-400 ${
+                    timeframe === option
                       ? "bg-blue-500 text-white"
                       : "bg-gray-200"
                   }`}
+                  onClick={() => setTimeFrame(option)}
                 >
                   {option.charAt(0).toUpperCase() + option.slice(1)}
                 </button>
@@ -195,58 +282,26 @@ const Transaction = () => {
             <div className="grid grid-cols-2 gap-6 py-3">
               <div className="bg-green-400/25 backdrop-blur-lg shadow-xl border border-white/10 rounded-2xl p-6">
                 <h2 className="text-lg font-semibold">Total Income</h2>
-                <p className="text-xl font-bold">
-                  Rp {totalIncome.toLocaleString()}
-                </p>
+                {loading ? (
+                  <Skeleton variant="text" sx={{ fontSize: "1rem" }} />
+                ) : (
+                  <p className="text-xl font-bold">
+                    Rp {totalIncome.toLocaleString()}
+                  </p>
+                )}
               </div>
               <div className="bg-red-400/25 backdrop-blur-lg shadow-xl border border-white/10 rounded-2xl p-6">
                 <h2 className="text-lg font-semibold">Total Expenses</h2>
-                <p className="text-xl font-bold">
-                  Rp {totalExpenses.toLocaleString()}
-                </p>
+                {loading ? (
+                  <Skeleton variant="text" sx={{ fontSize: "1rem" }} />
+                ) : (
+                  <p className="text-xl font-bold">
+                    Rp {totalExpenses.toLocaleString()}
+                  </p>
+                )}
               </div>
             </div>
           </div>
-        </div>
-      </div>
-
-      <div className="mt-10">
-        <h1 className="text-2xl mb-5 font-bold">Transaction Logs</h1>
-        <div className="overflow-x-auto rounded-lg shadow-md">
-          <Table className="text-md border border-gray-300">
-            <TableHeader className="bg-gray-200">
-              <TableRow className="border-b">
-                <TableHead className="text-center px-4 py-3">User</TableHead>
-                <TableHead className="text-center px-4 py-3">Type</TableHead>
-                <TableHead className="text-center px-4 py-3">Source</TableHead>
-                <TableHead className="text-center px-4 py-3">Date</TableHead>
-                <TableHead className="text-center px-4 py-3">Amount</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody className="divide-y">
-              {[...income, ...expenses].map((tx, index) => (
-                <TableRow key={index} className="hover:bg-gray-100 transition">
-                  <TableCell className="text-center px-4 py-3">
-                    {tx.username || "Unknown"}
-                  </TableCell>
-                  <TableCell className="text-center px-4 py-3">
-                    {tx.type
-                      ? tx.type.charAt(0).toUpperCase() + tx.type.slice(1)
-                      : "N/A"}
-                  </TableCell>
-                  <TableCell className="text-center px-4 py-3">
-                    {tx.source}
-                  </TableCell>
-                  <TableCell className="text-center px-4 py-3">
-                    {tx.date}
-                  </TableCell>
-                  <TableCell className="text-center px-4 py-3">
-                    Rp. {tx.amount.toLocaleString()}
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
         </div>
       </div>
     </div>

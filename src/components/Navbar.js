@@ -3,11 +3,12 @@ import { useRouter, usePathname } from "next/navigation";
 import Image from "next/image";
 import { useEffect, useState } from "react";
 import useAuth from "@/hooks/useAuth";
+import { Skeleton } from "@mui/material";
 
 const AUTO_LOGOUT_TIME = 5 * 60 * 1000;
 
 const Navbar = () => {
-  const { username, logout } = useAuth();
+  const { username, logout, loading } = useAuth();
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const router = useRouter();
   const pathname = usePathname();
@@ -80,7 +81,11 @@ const Navbar = () => {
           className="flex items-center gap-3 bg-white text-black rounded-xl px-3 py-2 my-2 cursor-pointer hover:bg-gray-200 transition-all"
           onClick={() => setDropdownOpen(!dropdownOpen)}
         >
-          <h1 className="text-md">{username}</h1>
+          {loading ? (
+            <Skeleton variant="text" sx={{ fontSize: "2rem" }} />
+          ) : (
+            <h1 className="text-md">{username}</h1>
+          )}
           <Image
             src="/images/panda.png"
             alt="Profile Pic"

@@ -11,10 +11,12 @@ const useAuth = () => {
   const [unsubscribeFirestore, setUnsubscribeFirestore] = useState(null);
   const router = useRouter();
   const pathname = usePathname();
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     const unsubscribeAuth = onAuthStateChanged(auth, async (user) => {
       if (!user) {
+        setLoading(true);
         setUser(null);
         setUsername("");
         if (pathname !== "/login") {
@@ -25,6 +27,8 @@ const useAuth = () => {
       setUser(user);
 
       try {
+        setLoading(true);
+
         const userDocRef = doc(db, "users", user.uid);
         const userDocSnap = await getDoc(userDocRef);
 
@@ -35,6 +39,8 @@ const useAuth = () => {
         }
       } catch (error) {
         console.error("Error fetching data", error);
+      } finally {
+        setLoading(false);
       }
     });
 
@@ -50,6 +56,6 @@ const useAuth = () => {
     }
   };
 
-  return { user, username, logout };
+  return { user, username, logout, loading };
 };
 export default useAuth;

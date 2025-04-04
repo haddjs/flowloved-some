@@ -14,60 +14,52 @@ import {
   ResponsiveContainer,
 } from "recharts";
 
+import { Skeleton } from "@mui/material";
+
 const Dashboard = () => {
   const { user } = useAuth();
+  const userId = user?.uid;
+  const [timeframe, setTimeFrame] = useState("monthly");
   const {
     currentBalance,
     revenue,
     totalIncome,
     totalExpenses,
-    filteredTransactions,
-    setFilterType,
+    transactions,
     loading,
-  } = useTransactionData(user?.uid);
-
-  const [timeframe, setTimeFrame] = useState("monthly");
-
-  const handleFilterChange = (filter) => {
-    setTimeFrame(filter);
-    setFilterType(filter);
-  };
+  } = useTransactionData(userId, timeframe);
 
   return (
     <div className="p-6">
       <div className="grid grid-cols-2 gap-6">
         <div className="bg-blue-400/30 backdrop-blur-lg shadow-xl border border-white/10 rounded-2xl p-6">
+          <h2 className="text-xl font-semibold">Current Balance</h2>
           {loading ? (
-            <p>Loading...</p>
+            <Skeleton variant="text" sx={{ fontSize: "1rem" }} />
           ) : (
-            <>
-              <h2 className="text-xl font-semibold">Current Balance</h2>
-              <span>Rp. {currentBalance.toLocaleString()}</span>
-            </>
+            <span>Rp. {currentBalance.toLocaleString()}</span>
           )}
         </div>
         <div className="bg-yellow-400/25 backdrop-blur-lg shadow-xl border border-white/10 rounded-2xl p-6">
+          <h2 className="text-xl font-semibold">Revenue</h2>
           {loading ? (
-            <p>Loading...</p>
+            <Skeleton variant="text" sx={{ fontSize: "1rem" }} />
           ) : (
-            <>
-              <h2 className="text-xl font-semibold">Revenue</h2>
-              <span>Rp. {revenue.toLocaleString()}</span>
-            </>
+            <span>Rp. {revenue.toLocaleString()}</span>
           )}
         </div>
       </div>
 
       <div className="mt-6 flex gap-4">
-        {["daily", "weekly", "monthly"].map((filter) => (
+        {["daily", "weekly", "monthly"].map((option) => (
           <button
-            key={filter}
+            key={option}
             className={`px-4 py-2 rounded-lg border border-gray-400 ${
-              timeframe === filter ? "bg-blue-500 text-white" : "bg-gray-200"
+              timeframe === option ? "bg-blue-500 text-white" : "bg-gray-200"
             }`}
-            onClick={() => handleFilterChange(filter)}
+            onClick={() => setTimeFrame(option)}
           >
-            {filter.charAt(0).toUpperCase() + filter.slice(1)}
+            {option.charAt(0).toUpperCase() + option.slice(1)}
           </button>
         ))}
       </div>
@@ -78,26 +70,41 @@ const Dashboard = () => {
           <div className="grid grid-cols-2 gap-6">
             <div className="bg-green-400/25 backdrop-blur-lg shadow-xl border border-white/10 rounded-2xl p-6">
               <h2 className="text-lg font-semibold">Total Income</h2>
-              <span>Rp. {totalIncome.toLocaleString()}</span>
+              {loading ? (
+                <Skeleton variant="text" sx={{ fontSize: "1rem" }} />
+              ) : (
+                <span>Rp. {totalIncome.toLocaleString()}</span>
+              )}
             </div>
             <div className="bg-red-400/25 backdrop-blur-lg shadow-xl border border-white/10 rounded-2xl p-6">
               <h2 className="text-lg font-semibold">Total Expenses</h2>
-              <span>Rp. {totalExpenses.toLocaleString()}</span>
+              {loading ? (
+                <Skeleton variant="text" sx={{ fontSize: "1rem" }} />
+              ) : (
+                <span>Rp. {totalExpenses.toLocaleString()}</span>
+              )}
             </div>
           </div>
         </div>
 
-        <ResponsiveContainer width="100%" height={300} className="py-3">
-          <LineChart data={filteredTransactions}>
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="date" />
-            <YAxis />
-            <Tooltip />
-            <Legend />
-            <Line type="monotone" dataKey="income" stroke="#4CAF50" />
-            <Line type="monotone" dataKey="expenses" stroke="#FF5722" />
-          </LineChart>
-        </ResponsiveContainer>
+        {loading ? (
+          <Skeleton variant="rectangular" width="100%" height={200} />
+        ) : (
+          <ResponsiveContainer width="100%" height={300} className="py-3">
+            <LineChart data={transactions}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis
+                dataKey="date"
+                tickFormatter={(date) => new Date(date).toLocaleDateString()}
+              />
+              <YAxis />
+              <Tooltip />
+              <Legend />
+              <Line type="monotone" dataKey="income" stroke="#4CAF50" />
+              <Line type="monotone" dataKey="expenses" stroke="#FF5722" />
+            </LineChart>
+          </ResponsiveContainer>
+        )}
       </div>
     </div>
   );

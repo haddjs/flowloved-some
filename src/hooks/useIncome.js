@@ -1,16 +1,19 @@
 import { useState, useEffect } from "react";
 import { db } from "@/lib/firebase";
-import { collection, query, where, getDocs, addDoc } from "firebase/firestore";
+import {
+  collection,
+  query,
+  where,
+  getDocs,
+  addDoc,
+  doc,
+  deleteDoc,
+  Timestamp,
+} from "firebase/firestore";
 
 const useIncome = (userId) => {
   const [income, setIncome] = useState([]);
   const [loading, setLoading] = useState(true);
-  const options = {
-    weekday: "long",
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  };
 
   useEffect(() => {
     if (!userId) return;
@@ -41,7 +44,7 @@ const useIncome = (userId) => {
     fetchIncome();
   }, [userId]);
 
-  const addIncome = async (amount, source, username) => {
+  const addIncome = async (amount, source, username, date) => {
     if (!userId) return;
 
     try {
@@ -50,7 +53,7 @@ const useIncome = (userId) => {
         username,
         amount,
         source,
-        date: new Date().toLocaleDateString("id-ID", options),
+        date: Timestamp.fromDate(new Date(date)),
         type: "income",
       });
 
@@ -60,7 +63,7 @@ const useIncome = (userId) => {
         username,
         amount,
         source,
-        date: new Date().toLocaleDateString("id-ID", options),
+        date: Timestamp.fromDate(new Date(date)),
         type: "income",
       };
 
@@ -71,7 +74,25 @@ const useIncome = (userId) => {
     }
   };
 
-  return { income, loading, addIncome };
+  const deleteIncome = async (incomeId) => {
+    if (!userId) return;
+
+    try {
+      const incomeRef = doc(db, "income", incomeId);
+      await deleteDoc(incomeRef);
+
+      setIncome((prevIncome) =>
+        prevIncome.filter((income) => income.id !== incomeId)
+      );
+
+      console.log("Income deleted!");
+    } catch (error) {
+      console.error("Error deleting income!", error);
+      throw error;
+    }
+  };
+
+  return { income, loading, addIncome, deleteIncome };
 };
 
 export default useIncome;
