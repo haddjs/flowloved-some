@@ -57,7 +57,7 @@ const Login = () => {
           required
         />
         {error && <p className="text-red-500 text-sm text-center">{error}</p>}
-        <p className="text-left">Don&apost;t have an account?</p>
+        <p className="text-left">Do not have account?</p>
         <span
           onClick={() => router.push("/register")}
           className="text-blue-500 cursor-pointer"
