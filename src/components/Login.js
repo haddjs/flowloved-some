@@ -58,7 +58,7 @@ const Login = () => {
         />
         {error && <p className="text-red-500 text-sm text-center">{error}</p>}
         <p className="text-left">
-          Don't have an account?{" "}
+          Don&apost;t have an account?
           <span
             onClick={() => router.push("/register")}
             className="text-blue-500 cursor-pointer"
