@@ -26,7 +26,7 @@ const Signup = () => {
 
   return (
     <div className="flex flex-col md:flex-row justify-center items-center min-h-screen bg-white p-6">
-      <div className="flex flex-col text-black px-4 pb-6 md:pb-0 border-b md:border-b-0 md:border-s-2 border-gray-500">
+      <div className="flex flex-col text-black px-4 pb-6 md:pb-0 border-b md:border-b-0 md:border-e-2 border-gray-500">
         <h1 className="text-6xl text-center md:text-left md:text-9xl">
           FlowLoved
         </h1>

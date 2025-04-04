@@ -57,16 +57,13 @@ const Login = () => {
           required
         />
         {error && <p className="text-red-500 text-sm text-center">{error}</p>}
-        <p className="text-left">
-          Don&apost;t have an account?
-          <span
-            onClick={() => router.push("/register")}
-            className="text-blue-500 cursor-pointer"
-          >
-            Register here
-          </span>
-          .
-        </p>
+        <p className="text-left">Don&apost;t have an account?</p>
+        <span
+          onClick={() => router.push("/register")}
+          className="text-blue-500 cursor-pointer"
+        >
+          Register here.
+        </span>
         <button
           type="submit"
           className="w-full bg-blue-500 text-white p-2 rounded cursor-pointer hover:bg-blue-600"
