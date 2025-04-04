@@ -49,7 +49,7 @@ const Dashboard = () => {
   return (
     <div className="p-6 h-screen md:h-full overflow-x-hidden">
       <h1 className="text-2xl mb-5 font-bold">Dashboard</h1>
-      <div className="grid grid-cols-1 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="bg-blue-400/30 backdrop-blur-lg shadow-xl border border-white/10 rounded-2xl p-6">
           <h2 className="text-xl font-semibold">Current Balance</h2>
           {loading ? (
@@ -84,9 +84,9 @@ const Dashboard = () => {
         ))}
       </div>
 
-      <div className="mt-2">
+      <div className="mt-4">
         <h2 className="text-xl font-semibold mb-4">Income and Expenses</h2>
-        <div className="grid grid-cols-1 gap-4">
+        <div className="grid grid-cols-1 md:flex gap-4 mb-3">
           <div className="bg-green-400/25 backdrop-blur-lg shadow-xl border border-white/10 rounded-2xl p-6">
             <h2 className="text-xl font-semibold">Total Income</h2>
             {loading ? (

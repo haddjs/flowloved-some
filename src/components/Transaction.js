@@ -283,7 +283,7 @@ const Transaction = () => {
                 </button>
               ))}
             </div>
-            <div className="grid grid-cols-1 gap-6 py-3">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 py-3">
               <div className="bg-green-400/25 backdrop-blur-lg shadow-xl border border-white/10 rounded-2xl p-6">
                 <h2 className="text-lg font-semibold">Total Income</h2>
                 {loading ? (
